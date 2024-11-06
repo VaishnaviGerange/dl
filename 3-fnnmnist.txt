@@ -1,0 +1,90 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from tensorflow import keras
+from sklearn.model_selection import train_test_split
+import seaborn as sns
+
+# Load dataset
+data = pd.read_csv('mnist_784_csv.csv')
+data.head()
+
+# Separate features and labels
+x = data.iloc[:, :-1].values  # All columns except the last one
+y = data.iloc[:, -1].values  
+
+# Split the dataset into training and testing sets
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+
+# Reshape for model compatibility
+x_train = x_train.reshape(-1, 28, 28, 1)
+x_test = x_test.reshape(-1, 28, 28, 1)
+
+# Scale the pixel values
+x_train = x_train / 255.0
+x_test = x_test / 255.0
+
+# Check shapes
+for i in (x_train, y_train, x_test, y_test):
+    print(i.shape)
+
+# Visualize a sample image and label
+plt.imshow(x_train[88].reshape(28, 28))
+plt.show()
+print(f"Label: {y_train[88]}")
+print("Unique labels in training set:", np.unique(y_train))
+print("Unique labels in test set:", np.unique(y_test))
+
+# Model definition
+model = keras.Sequential([
+    keras.layers.Flatten(input_shape=(28, 28, 1)), 
+    keras.layers.Dense(50, activation='relu', name='L1'),
+    keras.layers.Dense(50, activation='relu', name='L2'),
+    keras.layers.Dense(10, activation='softmax', name='L3')
+])
+
+# Compile the model
+model.compile(optimizer='sgd', 
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(), 
+              metrics=['accuracy'])
+
+# Train the model
+history = model.fit(x_train, y_train,
+                    batch_size=30, 
+                    epochs=10, 
+                    validation_data=(x_test, y_test),
+                    shuffle=True)
+
+# Plot accuracy and loss curves
+plt.figure(figsize=[15, 8])
+
+# Accuracy plot
+plt.subplot(1, 2, 1)
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
+plt.title('Model Accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.legend(['train', 'test'], loc='upper left')
+
+# Loss plot
+plt.subplot(1, 2, 2)
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('Model Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend(['train', 'test'], loc='upper left')
+
+plt.show()
+
+# Evaluate model
+test_loss, test_accuracy = model.evaluate(x_test, y_test, verbose=2)
+print(f"Test Loss: {test_loss}")
+print(f"Test Accuracy: {test_accuracy}")
+
+predicted_value = model.predict(x_test)
+plt.imshow(x_test[6].reshape(28, 28))
+plt.show()
+print("Predicted label:", np.argmax(predicted_value[6], axis=0))

@@ -1,0 +1,101 @@
+import numpy as np
+import pandas as pd
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense,Flatten,Dropout
+import matplotlib.pyplot as plt
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+test = r"D:\cifar10_dataset\cifar10_dataset\test"
+train = r"D:\cifar10_dataset\cifar10_dataset\train"
+
+train_datagen=ImageDataGenerator(rescale=1.0/255.0)
+test_datagen=ImageDataGenerator(rescale=1.0/255.0)
+
+train_generator = train_datagen.flow_from_directory(
+    train,
+    target_size=(32, 32),  
+    batch_size=64,
+    class_mode='categorical' 
+)
+
+test_generator = test_datagen.flow_from_directory(
+    test,
+    target_size=(32, 32),
+    batch_size=64,
+    class_mode='categorical'
+)
+
+
+def display_images(generator, num_images):
+    images, labels = next(generator)
+
+    plt.figure(figsize=(15, 5))
+    for i in range(num_images):
+        plt.subplot(1, num_images, i + 1)
+        plt.imshow(images[i])  
+        plt.title(f'Class: {np.argmax(labels[i])}')  
+        plt.axis('off')
+    plt.show()
+
+display_images(train_generator, num_images=10)
+
+model=Sequential()
+model.add(Flatten(input_shape=(32,32,3)))
+model.add(Dense(512,activation='relu'))
+model.add(Dense(256,activation='relu'))
+model.add(Dense(10,activation='softmax'))
+model.compile(optimizer='adam', 
+              loss='categorical_crossentropy',  # Change here
+              metrics=['accuracy'])
+history=model.fit(train_generator,epochs=10,validation_data=test_generator)
+
+loss,accuracy = model.evaluate(test_generator)
+print("loss :",loss)
+print("accuracy :",accuracy)
+
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train','val'])
+plt.show()
+
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('model accuracy')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train','val'])
+plt.show()
+
+class_labels = {
+    0: "airplane",
+    1: "car",
+    2: "bird",
+    3: "cat",
+    4: "deer",
+    5: "dog",
+    6: "frog",
+    7: "horse",
+    8: "ship",
+    9: "heavy_vehicle"
+}
+
+
+from tensorflow.keras.preprocessing import image
+def load_and_preprocess_image(img_path):
+    img = image.load_img(img_path, target_size=(32, 32))  # Resize to 32x32
+    img_array = image.img_to_array(img) / 255.0  # Normalize
+    img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
+    return img_array
+
+
+
+new_image_path = './download.jpeg'  # Path to a new image
+processed_image = load_and_preprocess_image(new_image_path)
+predictions = model.predict(processed_image)
+predicted_class_index = np.argmax(predictions, axis=1)[0]
+plt.imshow(image.load_img(new_image_path))
+plt.title(f'Predicted: {class_labels[predicted_class_index]}')
+plt.axis('off')
+plt.show() 

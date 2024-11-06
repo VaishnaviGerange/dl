@@ -1,0 +1,71 @@
+#KERAS
+from keras.models import Sequential
+from keras.layers import Dense
+from numpy import loadtxt
+import pandas as pd
+
+# Load dataset
+dataset = pd.read_csv('diabetes.csv', delimiter=',')
+x = dataset.iloc[:, 0:8].values  # Features
+y = dataset.iloc[:, 8].values    # Labels
+
+# Define model
+model = Sequential()
+model.add(Dense(12, input_shape=(8,), activation='relu'))
+model.add(Dense(8, activation='relu'))
+model.add(Dense(1, activation='sigmoid'))
+
+# Compile the model
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+# Train the model
+model.fit(x, y, epochs=150, batch_size=10)
+
+# Evaluate the model
+loss, accuracy = model.evaluate(x, y)
+print(f"Model accuracy: {accuracy * 100:.2f}%")
+
+# Make predictions
+predicted_probabilities = model.predict(x)
+predicted_classes = (predicted_probabilities > 0.5).astype(int)
+
+# Print the first 10 actual and predicted values
+print("Actual values:", y[:10])
+print("Predicted probabilities:", predicted_probabilities[:10]) 
+print("Predicted classes:", predicted_classes[:10])
+
+
+#tensorflow
+
+import tensorflow as tf
+from numpy import loadtxt
+
+# Load dataset
+dataset = pd.read_csv('diabetes.csv', delimiter=',')
+x = dataset.iloc[:, 0:8].values  # Features
+y = dataset.iloc[:, 8].values    # Labels
+
+# Define model
+model = tf.keras.Sequential()
+model.add(tf.keras.layers.Dense(12, input_shape=(8,), activation='relu'))
+model.add(tf.keras.layers.Dense(8, activation='relu'))
+model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
+
+# Compile the model
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+# Train the model
+model.fit(x, y, epochs=150, batch_size=10)
+
+# Evaluate the model
+loss, accuracy = model.evaluate(x, y)
+print(f"Model accuracy: {accuracy * 100:.2f}%")
+
+# Make predictions
+predicted_probabilities = model.predict(x)
+predicted_classes = (predicted_probabilities > 0.5).astype(int)
+
+# Print the first 10 actual and predicted values
+print("Actual values:", y[:10])
+print("Predicted probabilities:", predicted_probabilities[:10]) 
+print("Predicted classes:", predicted_classes[:10])
